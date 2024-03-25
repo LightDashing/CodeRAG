@@ -1,0 +1,36 @@
+{
+   "indexing": {
+    "doc_loading": {
+        "name": "TextLoader",
+        "module": "langchain_community.document_loaders",
+        "config": {
+
+        }
+    },
+    "doc_splitting": {
+        "name": "RecursiveCharacterTextSplitter",
+        "module": "langchain_text_splitters.character",
+        "config": {
+            
+        }
+    },
+    "doc_embedd": {
+        "name": "HuggingFaceEmbeddingModel"
+    },
+    "doc_storing":{
+        "name": "DocumentLoader",
+        "module": "langchain.document_loaders",
+        "config": {
+            
+        }
+    }
+   },
+   "rag":{
+    "retrieval": {
+
+    },
+    "generation": {
+
+    }
+   }
+}
