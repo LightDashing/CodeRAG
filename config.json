@@ -2,7 +2,7 @@
    "indexing": {
     "doc_loading": {
         "name": "TextLoader",
-        "module": "langchain_community.document_loaders",
+        "module": "langchain_community.document_loaders.text",
         "config": {
 
         }
@@ -18,8 +18,8 @@
         "name": "HuggingFaceEmbeddingModel"
     },
     "doc_storing":{
-        "name": "DocumentLoader",
-        "module": "langchain.document_loaders",
+        "name": "Qdrant",
+        "module": "langchain.vectorstores.qdrant",
         "config": {
             
         }

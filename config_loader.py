@@ -18,8 +18,10 @@ class Config:
             Config._instance = self
 
     def load_config(self):
-        config_path = Path(__file__).parent.parent / 'config.json' 
-        with open(config_path, 'r') as config_file:
-            return json.load(config_file)
+        config_path = Path(__file__).parent / 'config.json'  # Adjusted path
 
+        with open(config_path, 'r') as config_file:
+            print(config_path)
+            return json.load(config_file)
+        
 config = Config.get_instance().config
