@@ -15,7 +15,8 @@
         }
     },
     "doc_embedd": {
-        "name": "HuggingFaceEmbeddingModel"
+        "name": "HuggingFaceEmbeddingModel",
+        "model_name": "mixedbread-ai/mxbai-embed-large-v1"
     },
     "doc_storing":{
         "name": "Qdrant",
@@ -27,7 +28,7 @@
    },
    "rag":{
     "retrieval": {
-
+        
     },
     "generation": {
 

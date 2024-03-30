@@ -1,14 +1,23 @@
 from config_loader import Config
 import importlib
+from langchain import hub
+from langchain_community.llms import HuggingFaceEndpoint
+from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain_core.document_loaders.base import BaseLoader
 from langchain_text_splitters.base import TextSplitter
 from langchain_core.vectorstores import VectorStore
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationSummaryMemory
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
 #from langchain_community.document_loaders.text import TextLoader
 #from langchain.vectorstores.qdrant import Qdrant
 
 
 app_config = Config.get_instance().config
+
+
 
 
 def main(run_config):
@@ -20,6 +29,31 @@ def main(run_config):
     Qdrant = create_doc_store(documents=docs, embedding=Embedding_model,
                               path="data/local_qdrant", collection_name='my_docs')
     
+    llm_model = AutoModelForCausalLM.from_pretrained("snorkelai/Snorkel-Mistral-PairRM-DPO",
+                                                     load_in_4bit=True,
+                                                     device_map='auto')
+    
+    tokenizer = AutoTokenizer.from_pretrained("snorkelai/Snorkel-Mistral-PairRM-DPO")
+    
+    llm_pipeline = pipeline(
+                        "text-generation",
+                        model=llm_model,
+                        tokenizer=tokenizer,
+                        max_length = 256
+                        )
+    
+    llm = HuggingFacePipeline(pipeline=llm_pipeline)
+    
+    memory = ConversationSummaryMemory(
+        llm=llm, memory_key="chat_history", return_messages=True
+    )
+    qa = ConversationalRetrievalChain.from_pipeline(llm, retriever=Qdrant.as_retriever(), memory=memory)
+    
+    question = "What splitter is used in sample.py for text splitting?"
+    answer = qa("""Answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    Question: {question}
+    Helpful Answer:""")
+    print(answer)
     #LD = TextLoader("data/sample.py").load()
 
 
