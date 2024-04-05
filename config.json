@@ -3,15 +3,16 @@
     "doc_loading": {
         "name": "TextLoader",
         "module": "langchain_community.document_loaders.text",
-        "config": {
-
+        "params": {
+            "file_path": "data/sample.py"
         }
     },
     "doc_splitting": {
         "name": "RecursiveCharacterTextSplitter",
         "module": "langchain_text_splitters.character",
-        "config": {
-            
+        "params": {
+            "language": "python",
+            "chunk_size": 512
         }
     },
     "doc_embedd": {
@@ -21,7 +22,7 @@
     "doc_storing":{
         "name": "Qdrant",
         "module": "langchain.vectorstores.qdrant",
-        "config": {
+        "params": {
             
         }
     }

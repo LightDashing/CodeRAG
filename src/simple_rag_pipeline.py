@@ -61,7 +61,7 @@ def create_loader(**loader_args: dict):
     document_conf = app_config['indexing']['doc_loading']
     
     loader_module = importlib.import_module(document_conf['module'])
-    loader_args.update(document_conf['config'])
+    loader_args.update(document_conf['params'])
     
     DocumentLoader = getattr(loader_module, document_conf['name'])
     
@@ -75,7 +75,7 @@ def create_code_splitter(**splitter_args: dict):
     splitter_conf = app_config['indexing']['doc_splitting']
     
     splitter_module = importlib.import_module(splitter_conf['module'])
-    splitter_args.update(splitter_conf['config'])
+    splitter_args.update(splitter_conf['params'])
     
     SplitterLoader = getattr(splitter_module, splitter_conf['name'])
     
@@ -98,7 +98,7 @@ def create_doc_store(**document_store_args: dict):
 
     document_store_conf = app_config['indexing']['doc_storing']
     document_module = importlib.import_module(document_store_conf['module'])
-    document_store_args.update(document_store_conf['config'])
+    document_store_args.update(document_store_conf['params'])
     
     DocumentStore = getattr(document_module, document_store_conf['name'])
     if not issubclass(DocumentStore, VectorStore):
@@ -106,7 +106,6 @@ def create_doc_store(**document_store_args: dict):
     
     return DocumentStore.from_documents(**document_store_args)
 
- 
  
 def create_embedder(**embedder_args: dict):
     raise NotImplementedError("Only HuggingFaceEmbeddings works for now")
