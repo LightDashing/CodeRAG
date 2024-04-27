@@ -10,6 +10,9 @@ from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from src.rag.DataPipeline import BaseDataPipeline
+from src.rag.ModelPipeline import BaseModelPipeline
+from src.rag.LLMPipeline import BaseLLMPipeline
 
 #from langchain_community.document_loaders.text import TextLoader
 #from langchain.vectorstores.qdrant import Qdrant
@@ -18,7 +21,13 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 app_config = Config.get_instance().config
 
 
-
+def main_v2():
+    data_pipeline = BaseDataPipeline(config=app_config['indexing'],
+                        embedder_model_name='mixedbread-ai/mxbai-embed-large-v1')
+    model_pipeline = BaseModelPipeline(app_config['generation']['model'])
+    llm_pipeline = BaseLLMPipeline(app_config['generation']['llm_pipeline'],
+                                   data_pipeline, model_pipeline)
+    print(llm_pipeline.ask_question('What splitter is used in sample.py for text splitting?'))
 
 def main(run_config):
     Loader = create_loader(file_path="data/sample.py")
@@ -39,7 +48,7 @@ def main(run_config):
                         "text-generation",
                         model=llm_model,
                         tokenizer=tokenizer,
-                        max_length = 256
+                        max_length = 1024
                         )
     
     llm = HuggingFacePipeline(pipeline=llm_pipeline)
@@ -47,7 +56,7 @@ def main(run_config):
     memory = ConversationSummaryMemory(
         llm=llm, memory_key="chat_history", return_messages=True
     )
-    qa = ConversationalRetrievalChain.from_pipeline(llm, retriever=Qdrant.as_retriever(), memory=memory)
+    qa = ConversationalRetrievalChain.from_llm(llm, retriever=Qdrant.as_retriever(), memory=memory)
     
     question = "What splitter is used in sample.py for text splitting?"
     answer = qa("""Answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.

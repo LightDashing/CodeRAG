@@ -23,16 +23,49 @@
         "name": "Qdrant",
         "module": "langchain.vectorstores.qdrant",
         "params": {
-            
+            "path":"data/local_qdrant", 
+            "collection_name":"my_docs"
         }
     }
    },
-   "rag":{
-    "retrieval": {
-        
+   "generation":{
+    "model": {
+        "llm_model": {
+            "name": "snorkelai/Snorkel-Mistral-PairRM-DPO",
+            "params": {
+                "device_map": "auto"
+            }
+        },
+        "task": "text-generation",
+        "pipeline_params":{
+            "max_length": 1024,
+            "max_new_tokens": 512
+        },
+        "use_quantization": true,
+        "quantization_config":{
+            "load_in_4_bit": true,
+            "bnb_4bit_quant_type":"nf4",
+            "bnb_4bit_use_double_quant":true
+        }
     },
-    "generation": {
+    "llm_pipeline":{
+        "QA_prompt": "Answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer. \n Question: <QUESTION> \n Helpful Answer:",
+        "chain": {
+            "name": "ConversationalRetrievalChain",
+            "module": "langchain.chains",
+            "params":{
 
+            }
+        },
+        "use_memory": true,
+        "llm_memory":{
+            "name": "ConversationSummaryMemory",
+            "module": "langchain.memory",
+            "params": {
+                "return_messages": true,
+                "memory_key": "chat_history"
+            }
+        }
     }
    }
 }
