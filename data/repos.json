@@ -1,0 +1,20 @@
+{
+    "passphrase": "passphrase",
+    "repos":[
+        {
+            "name": "TestRepo1",
+            "path": "/your/path/",
+            "pull": true
+        },
+        {
+            "name": "TestRepo2",
+            "path": "/your/path/",
+            "pull": true
+        },
+        {
+            "name": "TestRemoteRepo",
+            "remote_path": "/your/remote/path",
+            "pull": true
+        }
+    ]
+}
