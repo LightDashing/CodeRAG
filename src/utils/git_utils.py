@@ -104,6 +104,7 @@ class GitManager:
                 repo['path'] = local_path + repo_path[repo_path.rfind('/') + 1:repo_path.rfind('.')]
                 repo['remote_path'] = ''
     
+            #TODO: repo_name should always be unique
             new_repo = GitRepo(repo['path'], repo.get('name'), repo.get('pull'))
             repos_list.append(new_repo)
             
@@ -113,8 +114,41 @@ class GitManager:
         return repos_list, generated_repo
     
     def update_config(self) -> None:
-        with open("data/repos.generated.json", "w") as f:
-            json.dump(self.generated_repo, f)
+        with open("data/repos.json", "w") as f:
+            json.dump(self.generated_repo, f, indent=4)
+            
+    def add_repo(self, repo_path: str, repo_name: str = None, auto_pull: bool = False):
+        #TODO: repo_name should always be unique
+        #TODO: add check if path is already exist
+        if repo_path.find('https://') != -1 or repo_path.find('git@') != -1:
+            local_path = self.remote_save_path
+                
+            if not os.path.exists(local_path):
+                os.makedirs(local_path)
+            
+            #TODO: in future rewrite for local input and then running subprocess
+            output = subprocess.run(['git', '-C', local_path, 'clone', repo_path], 
+                                    input=self.repo_config['passphrase'].encode('utf-8'), capture_output=True)
+            print(output.stdout.decode())
+            print(output.stderr.decode())
+        else:
+            local_path = repo_path
+            
+        repo = GitRepo(local_path, repo_name, auto_pull)
+        self.repos.append(repo)
+        self.generated_repo['repos'].append({
+            "name": repo.local_name,
+            "path": local_path,
+            "pull": auto_pull
+        })
+        
+    def remove_repo(self, repo_path: str, repo_name: str = None) -> bool:
+        for repo_obj, repo_dict in zip(self.repos, self.generated_repo['repos']):
+            if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
+                self.repos.remove(repo_obj)
+                self.generated_repo['repos'].remove(repo_dict)
+                return True
+        return False
             
     
 if __name__ == "__main__":

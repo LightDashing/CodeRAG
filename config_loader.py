@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 class Config:
+    config: dict
     _instance = None
 
     @staticmethod

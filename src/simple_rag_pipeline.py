@@ -10,15 +10,26 @@ from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationSummaryMemory
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from src.rag.DataPipeline import BaseDataPipeline
-from src.rag.ModelPipeline import BaseModelPipeline
-from src.rag.LLMPipeline import BaseLLMPipeline
+from src.data_pipelines.base import BaseDataPipeline
+from src.rag.model_pipelines import BaseModelPipeline
+from src.rag.llm_pipelines import BaseLLMPipeline
+from src.utils.git_utils import GitManager
+from src.data_pipelines.git_code_pipeline import GitCodePipeline
 
 #from langchain_community.document_loaders.text import TextLoader
 #from langchain.vectorstores.qdrant import Qdrant
 
 
 app_config = Config.get_instance().config
+
+def git_test():
+    manager = GitManager()
+    manager.update_config()
+    data_pipe = GitCodePipeline(app_config, "mixedbread-ai/mxbai-embed-large-v1",
+                                manager, doc_store={"path": "data/local_qdrant/",
+                                                       "collection_name": "main",
+                                                       "collection_exists": True})
+    print([document.metadata['file_path'] for document in data_pipe.doc_store.similarity_search("class server asyncio")])
 
 
 def main_v2():

@@ -1,7 +1,5 @@
-import importlib
-
-from src.rag.ModelPipeline import BaseModelPipeline
-from src.rag.DataPipeline import BaseDataPipeline
+from src.rag.model_pipelines import BaseModelPipeline
+from src.data_pipelines.base import BaseDataPipeline
 from src.utils.dynamic_import import import_class
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain.memory.summary import BaseChatMemory

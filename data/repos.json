@@ -1,20 +1,12 @@
 {
     "passphrase": "passphrase",
-    "repos":[
+    "repos": [
         {
-            "name": "TestRepo1",
-            "path": "/your/path/",
-            "pull": true
-        },
-        {
-            "name": "TestRepo2",
-            "path": "/your/path/",
-            "pull": true
-        },
-        {
-            "name": "TestRemoteRepo",
-            "remote_path": "/your/remote/path",
-            "pull": true
+            "name": "MyRepo",
+            "remote_path": "",
+            "pull": true,
+            "branch": "master",
+            "path": "./data/remote_saved/Async-RSA-Chat"
         }
     ]
 }

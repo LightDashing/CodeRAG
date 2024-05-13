@@ -6,6 +6,6 @@ def import_class(class_config: dict, BaseClass: object) -> object:
     InitModule = getattr(module, class_config['name'])
     
     if not issubclass(InitModule, BaseClass):
-                raise TypeError(f"{InitModule.__name__} is not subclass of langchain's VectorStore")
+                raise TypeError(f"{InitModule.__name__} is not subclass of {BaseClass.__name__}")
             
     return InitModule
