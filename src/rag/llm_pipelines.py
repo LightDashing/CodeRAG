@@ -1,10 +1,11 @@
-from src.rag.model_pipelines import BaseModelPipeline
+from src.model_pipelines.base import BaseModelPipeline
 from src.data_pipelines.base import BaseDataPipeline
 from src.utils.dynamic_import import import_class
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain.memory.summary import BaseChatMemory
 from langchain.chains.base import Chain
 import re
+import torch
 
 
 class BaseLLMPipeline:
@@ -29,7 +30,7 @@ class BaseLLMPipeline:
         self.create_chain()
             
     def create_llm(self) -> None:
-        self.llm = HuggingFacePipeline(pipeline=self.model_pipeline.transformers_pipeline)
+        self.llm = self.model_pipeline.llm_pipeline
     
     def create_memory(self) -> None:
         LLMMemory = import_class(self.config['llm_memory'], BaseChatMemory)
@@ -42,5 +43,15 @@ class BaseLLMPipeline:
     
     def ask_question(self, question: str) -> str:
         template = self.config['QA_prompt']
-        template = re.sub(r"<QUESTION>", template, question, flags=re.MULTILINE)
-        return self.chain(template)
+        prompt = re.sub(r"<QUESTION>", template, question, flags=re.MULTILINE)
+        response = self.chain.invoke(input=prompt)
+        
+        if self.memory:
+            #self.memory.add_message({"input": prompt, "response": response})
+            #self.memory.add_user_message(prompt)
+            #self.memory.add_ai_message(response)
+            pass
+
+        #torch.cuda.empty_cache()
+
+        return response

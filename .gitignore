@@ -5,3 +5,4 @@ data/remote_saved/
 data/repos.json
 config.json
 /src/indexer
+/data/local_llm

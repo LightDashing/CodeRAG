@@ -1,7 +1,9 @@
 from langchain_core.documents.base import Document
 from src.data_pipelines.base import BaseDataPipeline
-from src.utils.git_utils import GitManager
-from src.indexer.indexer import BaseIndexer
+from src.utils.git_utils import GitManager, GitRepo
+from src.utils.dynamic_import import import_class
+from langchain_core.vectorstores import VectorStore
+
 
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders.directory import DirectoryLoader
@@ -73,24 +75,20 @@ class GitCodePipeline(BaseDataPipeline):
             loaders.append(loader)
         return loaders
     
+    def load_new_repo(self, repo: GitRepo, **kwargs) -> list[Document]:
+        loader = GitLoader(repo.path, branch=repo.branch)
+        self.loaders.append(loader)
+        
+        raw_documents = loader.load()
+        split_documents = self.split_documents([raw_documents])
+        self.documents_list.extend(split_documents)
+        return split_documents
+    
     def create_splitters(self, **kwargs):
+        # Not needed there, logic already in split_documents
         pass
-        # splitters = {}
-        # for index in self.manager.index_repos:
-        #     for filetype, paths in index.items():
-                
-        #         if splitter.get(filetype):
-        #             continue
-                
-        #         if filetype in LANGUAGES:
-        #             splitter = RecursiveCharacterTextSplitter.from_language(LANGUAGES.get(filetype),
-        #                                                                     **kwargs.get('splitters', {}))
-        #         else:
-        #             splitter = RecursiveCharacterTextSplitter(**kwargs.get('splitters', {}))
-                    
-        #         splitters[filetype] = splitter
             
-    def split_documents(self, loaded_documents: list[Document], **kwargs) -> None:
+    def split_documents(self, loaded_documents: list[Document], **kwargs) -> list[Document]:
         split_documents = []
         for doc_list in loaded_documents:
             for doc in doc_list:
@@ -106,20 +104,16 @@ class GitCodePipeline(BaseDataPipeline):
         return split_documents
             
     def create_doc_store(self, **kwargs):
+        doc_store = self.pipeline_config['indexing']['doc_storing']
+        DocStoreClass = import_class(doc_store, VectorStore)
+        
         if kwargs.get('doc_store', {}).get('collection_exists'):
             qdrant_args = kwargs['doc_store']
-            return Qdrant.from_existing_collection(self.embedder_model, 
+            return DocStoreClass.from_existing_collection(self.embedder_model, 
                                                    qdrant_args['path'],
                                                    qdrant_args['collection_name'])
-        return Qdrant.from_documents(
+        return DocStoreClass.from_documents(
             embedding=self.embedder_model,
             documents=self.documents_list, 
             **kwargs.get('doc_store', {}))
         
-    def add_documents(self, documents: list[Document]):
-        self.doc_store.add_documents(documents)
-        
-    def delete_documents(self, path_prefix: str):
-        all_documents = self.doc_store.get_all_documents()
-        document_ids_to_delete = [doc.metadata['id'] for doc in all_documents if doc.metadata.get('file_path', '').startswith(path_prefix)]
-        self.qdrant_vector_store.delete_documents(document_ids_to_delete)

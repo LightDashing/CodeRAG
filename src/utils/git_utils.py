@@ -117,7 +117,7 @@ class GitManager:
         with open("data/repos.json", "w") as f:
             json.dump(self.generated_repo, f, indent=4)
             
-    def add_repo(self, repo_path: str, repo_name: str = None, auto_pull: bool = False):
+    def add_repo(self, repo_path: str, repo_name: str = None, auto_pull: bool = False) -> GitRepo:
         #TODO: repo_name should always be unique
         #TODO: add check if path is already exist
         if repo_path.find('https://') != -1 or repo_path.find('git@') != -1:
@@ -129,6 +129,9 @@ class GitManager:
             #TODO: in future rewrite for local input and then running subprocess
             output = subprocess.run(['git', '-C', local_path, 'clone', repo_path], 
                                     input=self.repo_config['passphrase'].encode('utf-8'), capture_output=True)
+            
+            local_path = local_path + repo_path[repo_path.rfind('/') + 1:repo_path.rfind('.')]
+            
             print(output.stdout.decode())
             print(output.stderr.decode())
         else:
@@ -141,6 +144,13 @@ class GitManager:
             "path": local_path,
             "pull": auto_pull
         })
+        return repo
+    
+    def pull_repo(self, repo_path: str, repo_name: str = None) -> GitRepo:
+        for repo_obj in self.repo_config:
+            if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
+                repo_obj.pull_repo()
+                return repo_obj
         
     def remove_repo(self, repo_path: str, repo_name: str = None) -> bool:
         for repo_obj, repo_dict in zip(self.repos, self.generated_repo['repos']):
