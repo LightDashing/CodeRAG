@@ -1,16 +1,18 @@
-from langchain_core.documents.base import Document
 from src.data_pipelines.base import BaseDataPipeline
 from src.utils.git_utils import GitManager, GitRepo
 from src.utils.dynamic_import import import_class
+from config_loader import Config
+
+from langchain_core.documents.base import Document
 from langchain_core.vectorstores import VectorStore
-
-
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders.directory import DirectoryLoader
 from langchain_community.document_loaders import GitLoader
 from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.qdrant import Qdrant
 #from langchain_community
+
+APP_CONFIG = Config.get_instance()
 
 LANGUAGES = {
     ".cpp": ['CPP'],
@@ -112,8 +114,19 @@ class GitCodePipeline(BaseDataPipeline):
             return DocStoreClass.from_existing_collection(self.embedder_model, 
                                                    qdrant_args['path'],
                                                    qdrant_args['collection_name'])
+        self.pipeline_config['indexing']['doc_storing']['collection_exists'] = True
+        APP_CONFIG.write_config(self.pipeline_config)
         return DocStoreClass.from_documents(
             embedding=self.embedder_model,
             documents=self.documents_list, 
             **kwargs.get('doc_store', {}))
         
+    def delete_documents_by_path(self, path_prefix: str):
+        if isinstance(self.doc_store, Qdrant):
+            self.__delete_document_by_path_qdrant(path_prefix)
+        else:
+            raise NotImplementedError("Right now can delete documents only in Qdrant")
+    
+    def __delete_document_by_path_qdrant(self, path_prefix: str):
+        document_ids_to_delete = [doc.metadata['id'] for doc in self.doc_store.client.scroll("main") if doc.metadata.get('file_path', '').startswith(path_prefix)]
+        self.doc_store.delete_documents(document_ids_to_delete)

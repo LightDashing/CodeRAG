@@ -1,0 +1,34 @@
+{
+    "doc_loading": [
+        {
+            "name": "TextLoader",
+            "module": "langchain_community.document_loaders.text",
+            "params": {
+                "file_path": "data/sample.py"
+            }
+        }
+    ],
+    "doc_splitting": [
+        {
+            "name": "RecursiveCharacterTextSplitter",
+            "module": "langchain_text_splitters.character",
+            "params": {
+                "language": "python",
+                "chunk_size": 512
+            }
+        }
+    ],
+    "doc_embedd": {
+        "name": "HuggingFaceEmbeddingModel",
+        "model_name": "mixedbread-ai/mxbai-embed-large-v1"
+    },
+    "doc_storing": {
+        "name": "Qdrant",
+        "module": "langchain.vectorstores.qdrant",
+        "collection_exists": false,
+        "params": {
+            "path": "data/unit_test/vector",
+            "collection_name": "vector_bd"
+        }
+    }
+}

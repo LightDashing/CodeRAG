@@ -4,11 +4,14 @@ from src.utils.dynamic_import import import_class
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain.memory.summary import BaseChatMemory
 from langchain.chains.base import Chain
+from langchain_core.prompts import PromptTemplate
 import re
 import torch
 
 
 class BaseLLMPipeline:
+    
+    base_prompt: PromptTemplate
     
     def __init__(self, pipeline_config: dict, data_pipeline: BaseDataPipeline, 
                  model_pipeline: BaseModelPipeline) -> None:
@@ -27,7 +30,10 @@ class BaseLLMPipeline:
         if self.config['use_memory']:
             self.create_memory()
             
+        self.base_prompt = PromptTemplate(input_variables=["context", "question"], template=self.config['QA_prompt'])
+        self.chain_config['combine_docs_chain_kwargs'] = {"prompt":self.base_prompt}
         self.create_chain()
+       
             
     def create_llm(self) -> None:
         self.llm = self.model_pipeline.llm_pipeline
@@ -42,9 +48,9 @@ class BaseLLMPipeline:
         self.chain = LLMChain.from_llm(self.llm, retriever=self.data_pipeline.doc_store.as_retriever(), **self.chain_config)
     
     def ask_question(self, question: str) -> str:
-        template = self.config['QA_prompt']
-        prompt = re.sub(r"<QUESTION>", template, question, flags=re.MULTILINE)
-        response = self.chain.invoke(input=prompt)
+        #template = self.config['QA_prompt']
+        #prompt = re.sub(r"<QUESTION>", template, question, flags=re.MULTILINE)
+        response = self.chain.invoke({"question": question})
         
         if self.memory:
             #self.memory.add_message({"input": prompt, "response": response})

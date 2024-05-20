@@ -12,6 +12,7 @@ class GitRepo:
     branch: str
     path: str
     local_name: str
+    auto_pull: bool
     
     def __init__(self, path: str, name: str = None,
                  auto_pull: bool = False, branch: str = None) -> None:
@@ -23,7 +24,8 @@ class GitRepo:
         else:
             self.local_name = uuid.uuid4()
             
-        self.branch = self.get_current_branch()
+        self.get_current_branch()
+        self.auto_pull = auto_pull
         
         if auto_pull:
             self.pull_repo()
@@ -58,17 +60,17 @@ class GitManager:
     repos_cfg_path: str = './data/repos.json'
     remote_save_path: str = './data/remote_saved/'
     repo_config: dict
-    generated_repo: dict
+    generated_repos: dict
     
     def __init__(self, repos_cfg_path: str = None, remote_save_path: str = None) -> None:
         
         if repos_cfg_path:
             self.repos_cfg_path = repos_cfg_path
         if remote_save_path:
-            self.remote_save_path 
+            self.remote_save_path = remote_save_path
         
         self.load_config()
-        self.repos, self.generated_repo = self.load_repos()
+        self.repos, self.generated_repos = self.load_repos()
     
     def load_config(self) -> None:
         with open(self.repos_cfg_path, "r") as f:
@@ -90,7 +92,7 @@ class GitManager:
                 
                 local_path = repo.get(
                     'local_path', 
-                    f"{self.remote_save_path}")
+                    self.remote_save_path)
                 
                 if not os.path.exists(local_path):
                     os.makedirs(local_path)
@@ -115,7 +117,7 @@ class GitManager:
     
     def update_config(self) -> None:
         with open("data/repos.json", "w") as f:
-            json.dump(self.generated_repo, f, indent=4)
+            json.dump(self.generated_repos, f, indent=4)
             
     def add_repo(self, repo_path: str, repo_name: str = None, auto_pull: bool = False) -> GitRepo:
         #TODO: repo_name should always be unique
@@ -139,10 +141,11 @@ class GitManager:
             
         repo = GitRepo(local_path, repo_name, auto_pull)
         self.repos.append(repo)
-        self.generated_repo['repos'].append({
-            "name": repo.local_name,
+        self.generated_repos['repos'].append({
+            "name": str(repo.local_name),
             "path": local_path,
-            "pull": auto_pull
+            "pull": repo.auto_pull,
+            "branch": repo.branch
         })
         return repo
     
@@ -153,13 +156,21 @@ class GitManager:
                 return repo_obj
         
     def remove_repo(self, repo_path: str, repo_name: str = None) -> bool:
-        for repo_obj, repo_dict in zip(self.repos, self.generated_repo['repos']):
+        for repo_obj, repo_dict in zip(self.repos, self.generated_repos['repos']):
             if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
                 self.repos.remove(repo_obj)
-                self.generated_repo['repos'].remove(repo_dict)
+                self.generated_repos['repos'].remove(repo_dict)
                 return True
         return False
-            
     
-if __name__ == "__main__":
-    pass
+    def fetch_repo(self, repo_path: str, repo_name: str = None):
+        for repo_obj in self.repos:
+            if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
+                repo_obj.fetch_repo()
+                
+    def change_branch(self, repo_path: str, branch_name: str, repo_name: str = None):
+        for repo_obj, repo_dict in zip(self.repos, self.generated_repos['repos']):
+            if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
+                repo_obj.change_branch(branch_name)
+                repo_dict['branch'] = branch_name
+            

@@ -1,0 +1,17 @@
+{
+    "QA_prompt": "You are a knowledgeable assistant. Answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.\n Context: {context} \n Question: {question} \n Helpful Answer:",
+    "chain": {
+        "name": "ConversationalRetrievalChain",
+        "module": "langchain.chains",
+        "params": {}
+    },
+    "use_memory": true,
+    "llm_memory": {
+        "name": "ConversationSummaryMemory",
+        "module": "langchain.memory",
+        "params": {
+            "return_messages": true,
+            "memory_key": "chat_history"
+        }
+    }
+}

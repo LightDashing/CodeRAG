@@ -1,0 +1,17 @@
+{
+    "passphrase": "passphrase",
+    "repos": [
+        {
+            "name": "FastFetch",
+            "remote_path": "https://github.com/fastfetch-cli/fastfetch.git",
+            "pull": true,
+            "branch": "master"
+        },
+        {
+            "name": "37bc87b0-8ecd-4969-bf6e-ccb8578732d2",
+            "path": "./data/remote_saved/FlapPyBird-Reinforcement",
+            "pull": null,
+            "branch": "master"
+        }
+    ]
+}

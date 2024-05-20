@@ -1,0 +1,19 @@
+{
+    "loader": "llamacpp",
+    "llm_model": {
+        "llama_cpp": {
+            "model_path": "PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed/Phi-3-mini-128k-instruct.Q4_0.gguf",
+            "n_gpu_layers": 15,
+            "n_batch": 512,
+            "temperature": 0,
+            "top_p": 1,
+            "n_ctx": 4096,
+            "flash_attn": true
+        },
+        "remote_model": {
+            "repo_id": "PrunaAI/Phi-3-mini-128k-instruct-GGUF-Imatrix-smashed",
+            "filename": "Phi-3-mini-128k-instruct.Q4_0.gguf",
+            "local_dir": "data/unit_test/cache_llm/"
+        }
+    }
+}

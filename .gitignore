@@ -5,4 +5,6 @@ data/remote_saved/
 data/repos.json
 config.json
 /src/indexer
-/data/local_llm
+data/local_llm
+data/unit_test/cache_llm
+data/unit_test/vector

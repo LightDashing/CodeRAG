@@ -24,7 +24,7 @@ def git_test():
     #print([document.metadata['file_path'] for document in data_pipe.doc_store.similarity_search("class server asyncio")])
 
 
-def base_test():
+def base_presentation():
     data_pipeline = BaseDataPipeline(config=app_config['indexing'],
                         embedder_model_name='mixedbread-ai/mxbai-embed-large-v1')
     model_pipeline = BaseModelPipeline(app_config['generation']['model'])

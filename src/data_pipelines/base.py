@@ -69,9 +69,9 @@ class BaseDataPipeline:
         self.doc_store.add_documents(documents)
         
     def delete_documents_by_path(self, path_prefix: str):
-        all_documents = self.doc_store.get_all_documents()
-        document_ids_to_delete = [doc.metadata['id'] for doc in all_documents if doc.metadata.get('file_path', '').startswith(path_prefix)]
-        self.doc_store.delete_documents(document_ids_to_delete)
+        #all_documents = self.doc_store.get_all_documents()
+        # Should be implemented differently for each document loader 
+        pass
         
     def delete_documents(self, documents_id: list[str]):
         self.doc_store.delete_documents(documents_id)     
