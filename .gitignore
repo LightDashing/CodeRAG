@@ -8,3 +8,4 @@ config.json
 data/local_llm
 data/unit_test/cache_llm
 data/unit_test/vector
+vscode_plugin/coderag/node_modules
