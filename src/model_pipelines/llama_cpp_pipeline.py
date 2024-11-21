@@ -43,16 +43,3 @@ class LlamaModelPipeline(BaseModelPipeline):
     def engine_not_implemented(self):
         pass
     
-    
-        
-        #Example
-        # model = LlamaCpp(
-        #     model_path=llama_cpp_params['model_path'],
-        #     n_gpu_layers=llama_cpp_params['n_gpu_layers'],
-        #     n_batch=llama_cpp_params['n_batch']
-        #     temperature=0.75,
-        #     max_tokens=512,
-        #     top_p=1,
-        #     #callback_manager=callback_manager,
-        #     verbose=True,  # Verbose is required to pass to the callback manager
-        # )

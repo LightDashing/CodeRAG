@@ -5,8 +5,6 @@ from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain.memory.summary import BaseChatMemory
 from langchain.chains.base import Chain
 from langchain_core.prompts import PromptTemplate
-import re
-import torch
 
 
 class BaseLLMPipeline:
