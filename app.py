@@ -1,7 +1,5 @@
-#import argparse
-import json
 import os
-from src.simple_rag_pipeline import base_presentation, git_test
+from src.simple_rag_pipeline import base_presentation
 from config_loader import Config
 from src.model_pipelines.base import BaseModelPipeline
 from src.model_pipelines.llama_cpp_pipeline import LlamaModelPipeline
@@ -14,7 +12,6 @@ from src.data_pipelines.git_code_pipeline import GitCodePipeline
 app_config = Config.get_instance().config
 
 
-#[APP_CONIFG = json.load("config.json")
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = "your_token"
 def app():
     if app_config['mode_testing']:
@@ -38,8 +35,8 @@ def app():
         command_manager = GitCommandsParser(manager, llm_pipeline, data_pipeline)
     
         while True:
-            print("\nInput your questions. \nCommands starts with / \nYou can get list of available commands using /help")
-            question = input("Enter: ")
+            print("\nCommands starts with / \nYou can get list of available commands using /help\n")
+            question = input("Input your question: ")
             if question.startswith('/'):
                 if question.lower() == '/reset':
                     llm_pipeline.memory.clear()

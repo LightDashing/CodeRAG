@@ -150,7 +150,7 @@ class GitManager:
         return repo
     
     def pull_repo(self, repo_path: str, repo_name: str = None) -> GitRepo:
-        for repo_obj in self.repo_config:
+        for repo_obj in self.repos:
             if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
                 repo_obj.pull_repo()
                 return repo_obj

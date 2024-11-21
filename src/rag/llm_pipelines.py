@@ -48,16 +48,5 @@ class BaseLLMPipeline:
         self.chain = LLMChain.from_llm(self.llm, retriever=self.data_pipeline.doc_store.as_retriever(), **self.chain_config)
     
     def ask_question(self, question: str) -> str:
-        #template = self.config['QA_prompt']
-        #prompt = re.sub(r"<QUESTION>", template, question, flags=re.MULTILINE)
         response = self.chain.invoke({"question": question})
-        
-        if self.memory:
-            #self.memory.add_message({"input": prompt, "response": response})
-            #self.memory.add_user_message(prompt)
-            #self.memory.add_ai_message(response)
-            pass
-
-        #torch.cuda.empty_cache()
-
         return response
