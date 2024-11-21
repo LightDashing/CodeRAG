@@ -54,6 +54,15 @@ class GitCommandsParser:
             else:
                 branch = command_args[2]
             self.change_branch(repo_path, branch, repo_name)
+        elif command_args[0].lower().startswith("/help"):
+            print("List of commands:")
+            print("/add <REPO_PATH> <REPO_NAME> <AUTO_PULL> - adds new repository")
+            print("/del <REPO_PATH> <REPO_NAME> - deletes repository from repos.json and database")
+            print("/pull <REPO_PATH> <REPO_NAME> - does git pull command to repository")
+            print("/branch <REPO_PATH> <REPO_NAME> <BRANCH_NAME> - changes branch of selected repository")
+            print("/fetch <REPO_PATH> <REPO_NAME> - does git fetch command to repository")
+            print("/help - prints this message")
+            print("/exit or /quit - exits program")
 
 
           
@@ -67,7 +76,7 @@ class GitCommandsParser:
         
     def pull_repo(self, repo_path: str, repo_name: str = None):
         self.git_manager.pull_repo(repo_path, repo_name)
-        repo = self.data_pipeline.delete_documents(repo_path)
+        repo = self.data_pipeline.delete_documents_by_path(repo_path)
         documents = self.data_pipeline.load_new_repo(repo)
         self.data_pipeline.add_documents(documents)
     
