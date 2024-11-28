@@ -22,12 +22,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
+const uvicorn_server_1 = require("./uvicorn_server");
+const webviews_1 = require("./webviews");
+const axios_1 = __importDefault(require("axios"));
+const server = new uvicorn_server_1.FastAPIServer();
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -42,6 +49,47 @@ function activate(context) {
         // Display a message box to the user
         vscode.window.showInformationMessage('Hello World from CodeRag!');
     });
+    vscode.commands.registerCommand('coderag.startServer', () => {
+        console.log("Check!");
+        server.start('app:app');
+    });
+    vscode.commands.registerCommand('coderag.stopServer', () => {
+        server.stop();
+    });
+    context.subscriptions.push(vscode.commands.registerCommand("coderag.openChat", () => {
+        const panel = vscode.window.createWebviewPanel("coderagChat", "AI Chat", vscode.ViewColumn.One, { enableScripts: true } // Allow JavaScript in the webview
+        );
+        panel.webview.html = (0, webviews_1.getWebviewContent)();
+        // Handle messages from the webview
+        panel.webview.onDidReceiveMessage(async (message) => {
+            if (message.command === "askAI") {
+                try {
+                    const response = await axios_1.default.get("http://127.0.0.1:8000/generate", {
+                        params: { user_input: message.userInput },
+                    });
+                    if (response.data.success) {
+                        panel.webview.postMessage({
+                            command: "aiResponse",
+                            answer: response.data.generated.answer,
+                            question: response.data.generated.question,
+                        });
+                    }
+                    else {
+                        panel.webview.postMessage({
+                            command: "error",
+                            message: "Failed to generate a response.",
+                        });
+                    }
+                }
+                catch (error) {
+                    panel.webview.postMessage({
+                        command: "error",
+                        message: "Error connecting to AI server.",
+                    });
+                }
+            }
+        });
+    }));
     context.subscriptions.push(disposable);
 }
 // This method is called when your extension is deactivated

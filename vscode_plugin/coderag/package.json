@@ -24,6 +24,10 @@
       {
         "command": "coderag.stopServer",
         "title": "Stop RAG Server"
+      },
+      {
+        "command": "coderag.openChat",
+        "title": "Open RAG chat"
       }
     ],
     "configuration": [
@@ -65,5 +69,8 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.13.0",
     "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "axios": "^1.7.8"
   }
 }
