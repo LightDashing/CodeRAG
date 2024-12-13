@@ -80,8 +80,8 @@ class GitCommandsParser:
         documents = self.data_pipeline.load_new_repo(repo)
         self.data_pipeline.add_documents(documents)
     
-    def delete_repo(self, repo_path: str, repo_name: str = None):
-        self.git_manager.remove_repo(repo_path, repo_name)
+    def delete_repo(self, repo_path: str, repo_name: str = None, remove_folder: bool = False):
+        self.git_manager.remove_repo(repo_path, repo_name, remove_folder)
         self.data_pipeline.delete_documents_by_path(repo_path)
         self.llm_pipe.create_chain()
         self.git_manager.update_config()

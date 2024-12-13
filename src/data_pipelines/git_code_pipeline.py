@@ -10,6 +10,7 @@ from langchain_community.document_loaders.directory import DirectoryLoader
 from langchain_community.document_loaders import GitLoader
 from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.qdrant import Qdrant
+from qdrant_client.http.models.models import Record as QdrantRecord
 #from langchain_community
 
 APP_CONFIG = Config.get_instance()
@@ -128,5 +129,16 @@ class GitCodePipeline(BaseDataPipeline):
             raise NotImplementedError("Right now can delete documents only in Qdrant")
     
     def __delete_document_by_path_qdrant(self, path_prefix: str):
-        document_ids_to_delete = [doc.metadata['id'] for doc in self.doc_store.client.scroll("main") if doc.metadata.get('file_path', '').startswith(path_prefix)]
-        self.doc_store.delete_documents(document_ids_to_delete)
+        # I HATE LANGCHAIN, THEY CHANGE THEIR API EACH SECOND
+        # there is no reason that this ad-hoc code will work at all next time yo run it
+        deletion_doc = []
+        for item in self.doc_store.client.scroll("main"):
+            if isinstance(item, list):
+                for doc in item:
+                    if isinstance(doc, QdrantRecord):
+                        if doc.payload.get('metadata', {}).get('file_path', '').startswith(path_prefix):
+                            deletion_doc.append(doc.payload.get('metadata')['id'])
+
+        #if len(deletion_doc) == 0: TODO: find what is wrong with this
+        #    raise ValueError(f"No documents were found by {path_prefix}!")
+        self.doc_store.delete(deletion_doc)

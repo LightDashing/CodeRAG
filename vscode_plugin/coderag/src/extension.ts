@@ -1,8 +1,13 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import * as path from "path";
+import * as fs from 'fs';
 import { FastAPIServer } from './uvicorn_server'
-import { getWebviewContent } from './webviews'
+import { getWebviewContent, getRepoManagementWebviewContent,
+        getConfigManagerWebviewContent
+        } from './webviews'
+import { saveSettingsToConfigFile } from './utils'
 import axios from "axios";
 
 const server = new FastAPIServer();
@@ -45,16 +50,16 @@ export function activate(context: vscode.ExtensionContext) {
             // Handle messages from the webview
             panel.webview.onDidReceiveMessage(async (message) => {
                 if (message.command === "askAI") {
+                    // Handle AI Chat
                     try {
                         const response = await axios.get("http://127.0.0.1:8000/generate", {
                             params: { user_input: message.userInput },
                         });
-
+            
                         if (response.data.success) {
                             panel.webview.postMessage({
                                 command: "aiResponse",
                                 answer: response.data.generated.answer,
-                                question: response.data.generated.question,
                             });
                         } else {
                             panel.webview.postMessage({
@@ -68,11 +73,136 @@ export function activate(context: vscode.ExtensionContext) {
                             message: "Error connecting to AI server.",
                         });
                     }
+                } else if (message.command === "addRepo") {
+                    // Handle Add Repository
+                    try {
+                        const response = await axios.post("http://127.0.0.1:8000/add_repo", {
+                            repo_path: message.repoPath,
+                            repo_name: message.repoName,
+                            auto_pull: message.autoPull,
+                        });
+            
+                        if (response.data.success) {
+                            vscode.window.showInformationMessage("Repository added successfully!");
+                        } else {
+                            vscode.window.showErrorMessage("Failed to add repository.");
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("Error adding repository.");
+                    }
+                } else if (message.command === "deleteRepo") {
+                    // Handle Delete Repository
+                    try {
+                        const response = await axios.delete("http://127.0.0.1:8000/remove_repo", {
+                            params: {
+                                repo_path: message.repoPath,
+                                repo_name: message.repoName || undefined,
+                            },
+                        });
+            
+                        if (response.data.success) {
+                            vscode.window.showInformationMessage("Repository deleted successfully!");
+                        } else {
+                            vscode.window.showErrorMessage("Failed to delete repository.");
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("Error deleting repository.");
+                    }
                 }
             });
         })
     );
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand("coderag.manageRepos", () => {
+            const panel = vscode.window.createWebviewPanel(
+                "repoManagement",
+                "Repository Management",
+                vscode.ViewColumn.One,
+                { enableScripts: true }
+            );
+    
+            panel.webview.html = getRepoManagementWebviewContent();
+    
+            // Handle messages from the repository management webview
+            panel.webview.onDidReceiveMessage(async (message) => {
+                if (message.command === "addRepo") {
+                    try {
+                        const response = await axios.post("http://127.0.0.1:8000/add_repo", {
+                            repo_path: message.repoPath,
+                            repo_name: message.repoName,
+                            auto_pull: message.autoPull,
+                        });
+    
+                        if (response.data.success) {
+                            vscode.window.showInformationMessage("Repository added successfully!");
+                        } else {
+                            vscode.window.showErrorMessage("Failed to add repository.");
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("Error adding repository.");
+                    }
+                } else if (message.command === "deleteRepo") {
+                    try {
+                        const response = await axios.delete("http://127.0.0.1:8000/remove_repo", {
+                            params: {
+                                repo_path: message.repoPath,
+                                repo_name: message.repoName || undefined,
+                                remove_folder: message.removeFolder,
+                            },
+                        });
+    
+                        if (response.data.success) {
+                            vscode.window.showInformationMessage("Repository deleted successfully!");
+                        } else {
+                            vscode.window.showErrorMessage("Failed to delete repository.");
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("Error deleting repository.");
+                    }
+                }
+            });
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand("coderag.openConfigManager", () => {
+            const panel = vscode.window.createWebviewPanel(
+                "configManager",
+                "Configuration Manager",
+                vscode.ViewColumn.One,
+                { enableScripts: true }
+            );
+
+            // Pass extensionPath to the webview function
+            panel.webview.html = getConfigManagerWebviewContent(context.extensionPath);
+
+            panel.webview.onDidReceiveMessage(async (message) => {
+                if (message.command === "saveConfig") {
+                    try {
+                        const configPath = path.join(context.extensionPath, "..", "..", "config.json");
+                        fs.writeFileSync(configPath, JSON.stringify(message.config, null, 2));
+                        vscode.window.showInformationMessage("Configuration saved successfully!");
+                    } catch (error) {
+                        vscode.window.showErrorMessage("Error saving configuration.");
+                    }
+                }
+            });
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand("coderag.saveSettings", () => {
+            saveSettingsToConfigFile(context.extensionPath);
+        })
+    );
+
+    vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("coderag")) {
+            saveSettingsToConfigFile(context.extensionPath);
+        }
+    });
+    
 	context.subscriptions.push(disposable);
 }
 

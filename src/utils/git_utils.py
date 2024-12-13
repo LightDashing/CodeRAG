@@ -4,6 +4,7 @@ import json
 import subprocess
 import os
 import copy
+import shutil
 
 
 class GitRepo:
@@ -155,11 +156,15 @@ class GitManager:
                 repo_obj.pull_repo()
                 return repo_obj
         
-    def remove_repo(self, repo_path: str, repo_name: str = None) -> bool:
+    def remove_repo(self, repo_path: str, repo_name: str = None, remove_folder: bool = False) -> bool:
         for repo_obj, repo_dict in zip(self.repos, self.generated_repos['repos']):
+            print(repo_obj, repo_path)
             if repo_obj.path == repo_path or repo_obj.local_name == repo_name:
                 self.repos.remove(repo_obj)
                 self.generated_repos['repos'].remove(repo_dict)
+                if remove_folder:
+                    shutil.rmtree(repo_obj.path)
+                print("Repo removed!")
                 return True
         return False
     

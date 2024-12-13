@@ -28,25 +28,53 @@
       {
         "command": "coderag.openChat",
         "title": "Open RAG chat"
+      },
+      {
+        "command": "coderag.manageRepos",
+        "title": "Manage CodeRAG repositories"
+      },
+      {
+        "command": "coderag.openConfigManager",
+        "title": "Open CodeRAG configuration manager"
+      },
+      {
+        "command": "coderag.saveSettings",
+        "title": "Save RAG VScode settings to file"
       }
     ],
     "configuration": [
       {
         "title": "CodeRAG",
         "properties": {
-          "coderag.splitterChunkSize": {
-            "type": "integer",
-            "default": 512,
-            "description": "Chunk size for splitter to split embedded documents into"
-          },
-          "coderag.RepositoriesToDownload": {
-            "type": "array",
-            "items": {
-              "type": "string"
+            "coderag.indexing.docSplitting": {
+                "type": "array",
+                  "description": "Document splitting strategies.",
+                  "default": [
+                      {
+                          "name": "RecursiveCharacterTextSplitter",
+                          "module": "langchain_text_splitters.character",
+                          "params": {
+                              "language": "python",
+                              "chunk_size": 512
+                          }
+                      }
+                  ]
             },
-            "default": [],
-            "description": "List of remote repositories to download."
-          }
+            "coderag.indexing.embeddingModel": {
+                "type": "string",
+                "description": "Model name for document embedding.",
+                "default": "mixedbread-ai/mxbai-embed-large-v1"
+            },
+            "coderag.generation.modelName": {
+                "type": "string",
+                "description": "Name of the LLM model.",
+                "default": "snorkelai/Snorkel-Mistral-PairRM-DPO"
+            },
+            "coderag.generation.QA_prompt": {
+                "type": "string",
+                "description": "Prompt used for QA generation.",
+                "default": "You are a knowledgeable assistant. Answer the question..."
+            }
         }
       }
     ]

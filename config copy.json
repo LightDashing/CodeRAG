@@ -1,0 +1,92 @@
+{
+    "mode_testing": false,
+    "indexing": {
+        "doc_loading": [
+            {
+                "name": "TextLoader",
+                "module": "langchain_community.document_loaders.text",
+                "params": {
+                    "file_path": "data/sample.py"
+                }
+            }
+        ],
+        "doc_splitting": [
+            {
+                "name": "RecursiveCharacterTextSplitter",
+                "module": "langchain_text_splitters.character",
+                "params": {
+                    "language": "python",
+                    "chunk_size": 512
+                }
+            }
+        ],
+        "doc_embedd": {
+            "name": "HuggingFaceEmbeddingModel",
+            "model_name": "mixedbread-ai/mxbai-embed-large-v1"
+        },
+        "doc_storing": {
+            "name": "Qdrant",
+            "module": "langchain.vectorstores.qdrant",
+            "collection_exists": true,
+            "params": {
+                "path": "data/local_qdrant/",
+                "collection_name": "main"
+            }
+        }
+    },
+    "generation": {
+        "model": {
+            "loader": "llamacpp",
+            "llm_model": {
+                "name": "snorkelai/Snorkel-Mistral-PairRM-DPO",
+                "llama_cpp": {
+                    "model_path": "data/local_llm/snorkel-mistral-pairrm-dpo.Q4_K_M.gguf",
+                    "n_gpu_layers": 15,
+                    "n_batch": 512,
+                    "temperature": 0,
+                    "max_new_tokens": 512,
+                    "top_p": 1,
+                    "n_ctx": 4096,
+                    "flash_attn": true,
+                    "verbose": 0
+                },
+                "remote_model": {
+                    "repo_id": "brittlewis12/Snorkel-Mistral-PairRM-DPO-GGUF",
+                    "filename": "snorkel-mistral-pairrm-dpo.Q4_K_M.gguf",
+                    "local_dir": "data/local_llm/"
+                },
+                "params": {
+                    "device_map": "auto"
+                }
+            },
+            "task": "text-generation",
+            "pipeline_params": {
+                "max_new_tokens": 512
+            },
+            "use_quantization": true,
+            "quantization_config": {
+                "load_in_4_bit": true,
+                "bnb_4bit_quant_type": "nf4",
+                "bnb_4bit_use_double_quant": true
+            }
+        },
+        "llm_pipeline": {
+            "QA_prompt": "You are a knowledgeable assistant. Answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.\n Context: {context} \n Question: {question} \n Helpful Answer:",
+            "chain": {
+                "name": "ConversationalRetrievalChain",
+                "module": "langchain.chains",
+                "params": {}
+            },
+            "use_memory": true,
+            "llm_memory": {
+                "name": "ConversationSummaryMemory",
+                "module": "langchain.memory",
+                "params": {
+                    "return_messages": true,
+                    "memory_key": "chat_history"
+                }
+            }
+        }
+    },
+    "model_name": "mixedbread-ai/mxbai-embed-large-v1"
+}

@@ -6,6 +6,7 @@ from src.model_pipelines.llama_cpp_pipeline import LlamaModelPipeline
 from src.rag.llm_pipelines import BaseLLMPipeline
 from src.utils.git_utils import GitManager
 from src.utils.commands_parser import GitCommandsParser
+from src.utils.data_classes import AddRepoRequest
 from src.data_pipelines.git_code_pipeline import GitCodePipeline
 
 
@@ -30,13 +31,15 @@ use_memory = app_llm_config['generation']['llm_pipeline']['use_memory']
 command_manager = GitCommandsParser(manager, llm_pipeline, data_pipeline)
 
 @app.post("/add_repo")
-async def add_repo(repo_path: str, repo_name: str, auto_pull:bool):
-    command_manager.add_repo(repo_path, repo_name, auto_pull)
+async def add_repo(request: AddRepoRequest):
+    print(request)
+    command_manager.add_repo(request.repo_path, request.repo_name, request.auto_pull)
     return {"success": True}
 
 @app.delete("/remove_repo")
-async def remove_repo(repo_path: str, repo_name: str = None):
-    command_manager.delete_repo(repo_path, repo_name)
+async def remove_repo(repo_path: str, repo_name: str | None = None, remove_folder: bool = False):
+    print(repo_path, repo_name, remove_folder)
+    command_manager.delete_repo(repo_path, repo_name, remove_folder)
     return {"success": True}
 
 @app.patch("/pull_repo")

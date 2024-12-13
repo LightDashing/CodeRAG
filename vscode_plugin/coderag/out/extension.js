@@ -31,8 +31,11 @@ exports.deactivate = deactivate;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
+const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
 const uvicorn_server_1 = require("./uvicorn_server");
 const webviews_1 = require("./webviews");
+const utils_1 = require("./utils");
 const axios_1 = __importDefault(require("axios"));
 const server = new uvicorn_server_1.FastAPIServer();
 // This method is called when your extension is activated
@@ -63,6 +66,7 @@ function activate(context) {
         // Handle messages from the webview
         panel.webview.onDidReceiveMessage(async (message) => {
             if (message.command === "askAI") {
+                // Handle AI Chat
                 try {
                     const response = await axios_1.default.get("http://127.0.0.1:8000/generate", {
                         params: { user_input: message.userInput },
@@ -71,7 +75,6 @@ function activate(context) {
                         panel.webview.postMessage({
                             command: "aiResponse",
                             answer: response.data.generated.answer,
-                            question: response.data.generated.question,
                         });
                     }
                     else {
@@ -88,8 +91,117 @@ function activate(context) {
                     });
                 }
             }
+            else if (message.command === "addRepo") {
+                // Handle Add Repository
+                try {
+                    const response = await axios_1.default.post("http://127.0.0.1:8000/add_repo", {
+                        repo_path: message.repoPath,
+                        repo_name: message.repoName,
+                        auto_pull: message.autoPull,
+                    });
+                    if (response.data.success) {
+                        vscode.window.showInformationMessage("Repository added successfully!");
+                    }
+                    else {
+                        vscode.window.showErrorMessage("Failed to add repository.");
+                    }
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage("Error adding repository.");
+                }
+            }
+            else if (message.command === "deleteRepo") {
+                // Handle Delete Repository
+                try {
+                    const response = await axios_1.default.delete("http://127.0.0.1:8000/remove_repo", {
+                        params: {
+                            repo_path: message.repoPath,
+                            repo_name: message.repoName || undefined,
+                        },
+                    });
+                    if (response.data.success) {
+                        vscode.window.showInformationMessage("Repository deleted successfully!");
+                    }
+                    else {
+                        vscode.window.showErrorMessage("Failed to delete repository.");
+                    }
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage("Error deleting repository.");
+                }
+            }
         });
     }));
+    context.subscriptions.push(vscode.commands.registerCommand("coderag.manageRepos", () => {
+        const panel = vscode.window.createWebviewPanel("repoManagement", "Repository Management", vscode.ViewColumn.One, { enableScripts: true });
+        panel.webview.html = (0, webviews_1.getRepoManagementWebviewContent)();
+        // Handle messages from the repository management webview
+        panel.webview.onDidReceiveMessage(async (message) => {
+            if (message.command === "addRepo") {
+                try {
+                    const response = await axios_1.default.post("http://127.0.0.1:8000/add_repo", {
+                        repo_path: message.repoPath,
+                        repo_name: message.repoName,
+                        auto_pull: message.autoPull,
+                    });
+                    if (response.data.success) {
+                        vscode.window.showInformationMessage("Repository added successfully!");
+                    }
+                    else {
+                        vscode.window.showErrorMessage("Failed to add repository.");
+                    }
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage("Error adding repository.");
+                }
+            }
+            else if (message.command === "deleteRepo") {
+                try {
+                    const response = await axios_1.default.delete("http://127.0.0.1:8000/remove_repo", {
+                        params: {
+                            repo_path: message.repoPath,
+                            repo_name: message.repoName || undefined,
+                            remove_folder: message.removeFolder,
+                        },
+                    });
+                    if (response.data.success) {
+                        vscode.window.showInformationMessage("Repository deleted successfully!");
+                    }
+                    else {
+                        vscode.window.showErrorMessage("Failed to delete repository.");
+                    }
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage("Error deleting repository.");
+                }
+            }
+        });
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("coderag.openConfigManager", () => {
+        const panel = vscode.window.createWebviewPanel("configManager", "Configuration Manager", vscode.ViewColumn.One, { enableScripts: true });
+        // Pass extensionPath to the webview function
+        panel.webview.html = (0, webviews_1.getConfigManagerWebviewContent)(context.extensionPath);
+        panel.webview.onDidReceiveMessage(async (message) => {
+            if (message.command === "saveConfig") {
+                try {
+                    const configPath = path.join(context.extensionPath, "..", "..", "config.json");
+                    fs.writeFileSync(configPath, JSON.stringify(message.config, null, 2));
+                    vscode.window.showInformationMessage("Configuration saved successfully!");
+                }
+                catch (error) {
+                    vscode.window.showErrorMessage("Error saving configuration.");
+                }
+            }
+        });
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("coderag.saveSettings", () => {
+        (0, utils_1.saveSettingsToConfigFile)(context.extensionPath);
+    }));
+    vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("coderag")) {
+            (0, utils_1.saveSettingsToConfigFile)(context.extensionPath);
+        }
+    });
     context.subscriptions.push(disposable);
 }
 // This method is called when your extension is deactivated
